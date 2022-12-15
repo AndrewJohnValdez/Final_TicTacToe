@@ -1,0 +1,11 @@
+CC = gcc
+MAIN = src/tictactoe.c
+
+all: program
+
+program: src
+
+	$(CC) -Iinclude src/*.c -lpaho-pqtt3c -o bin/program
+
+run: program
+	./program
