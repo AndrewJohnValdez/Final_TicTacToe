@@ -20,7 +20,7 @@ int prgrmTurn = -1;
 int endGame = -1;
 int p1Win = -1;
 int p2Win = -1;
-char square[9] = {'o','o','o','o','o','o','o','o','o'};
+char square[9] = {'-','-','-','-','-','-','-','-','-'};
 
 void delivered(void *context, MQTTClient_deliveryToken dt)
 {
@@ -36,38 +36,40 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
     payloadptr = message->payload;
 
     payloadptr++;
+
     if(*payloadptr-- == '1')
     {
-        if(strcmp(*payloadptr, 'W'))
+        if(*payloadptr == 'W')
         {
             p1Win = 1;
-        } else if(strcmp(*payloadptr, 'Q')) {
+        } else if(*payloadptr == 'Q') {
+            prgrmTurn = -1; //false
             endGame = 1;
-            prgrmTurn = -1;
-        } else if(strcmp(*payloadptr, '1')) {
+        } else if(*payloadptr == '1') {
             square[0] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '2')) {
+        } else if(*payloadptr == '2') {
             square[1] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '3')) {
+        } else if(*payloadptr == '3') {
             square[2] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '4')) {
+        } else if(*payloadptr == '4') {
             square[3] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '5')) {
+        } else if(*payloadptr == '5') {
             square[4] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '6')) {
+        } else if(*payloadptr == '6') {
             square[5] = 'X';
-        } else if(strcmp(*payloadptr, '7')) {
+            prgrmTurn = 1;
+        } else if(*payloadptr == '7') {
             square[6] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '8')) {
+        } else if(*payloadptr == '8') {
             square[7] = 'X';
             prgrmTurn = 1;
-        } else if(strcmp(*payloadptr, '9')) {
+        } else if(*payloadptr == '9') {
             square[8] = 'X';
             prgrmTurn = 1;
         }
@@ -129,7 +131,6 @@ int main(int argc, char* argv[])
 
             return rc;
         }
-
         if(p1Win == 1)
         {
             display();
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
         else
         {
             display();
-            printf("%s\n","It's your turn!. . . (Press <1-9> or <Q> to Quit)"); //1-9 or Q to quit
+            printf("%s\n","Your turn!"); //1-9 or Q to quit
         }
 
         fflush(stdin);
@@ -165,45 +166,30 @@ int main(int argc, char* argv[])
 
         if(prgrmTurn && endGame != 1)
         {
-            switch(input[0])
-            {
-                case '1':
-                    check(0);
-                    break;
-                case '2':
-                    check(1);
-                    break;
-                case '3':
-                    check(2);
-                    break;
-                case '4':
-                    check(3);
-                    break;
-                case '5':
-                    check(4);
-                    break;
-                case '6':
-                    check(5);
-                    break;
-                case '7':
-                    check(6);
-                    break;
-                case '8':
-                    check(7);
-                    break;
-                case '9':
-                    check(8);
-                    break;
-                case '\n':
-                    break;
-                default:
-                    if(prgrmTurn)
-                    {
-                        printf("Invalid input, please try again");
-                    }
-                    break;
-            }
-            
+            if(input[0] == '1') {
+                check(0); 
+            } else if(input[0] == '2') {
+                check(1); 
+            } else if(input[0] == '3') {
+                check(2); 
+            } else if(input[0] == '4') {
+                check(3); 
+            } else if(input[0] == '5') {
+                check(4);               
+            } else if(input[0] == '6') {
+                check(5);
+            } else if(input[0] == '7') {
+                check(6);
+            } else if(input[0] == '8') {
+                check(7);
+            } else if(input[0] == '9') {
+                check(8);
+            } else {
+                if(prgrmTurn == 1)
+                {
+                    printf("Invalid input, please try again");
+                }
+            }            
         }
 
         input[1] = '2';
@@ -216,16 +202,13 @@ int main(int argc, char* argv[])
         MQTTClient_publishMessage(client, TOPIC, &pubmsg, &token);
         rc = MQTTClient_waitForCompletion(client, token, TIMEOUT);
     } while((input[0] != 'Q' && input[0] != 'q'));
-
     MQTTClient_disconnect(client, 10000);
     MQTTClient_destroy(&client);
     return rc;
 }
 
-// prints status of the tictactoe board
 void display()
 {
-    printf("\nThe current status is:\n");
     printf("+-----------+ \n| %c | %c | %c | \n", square[0], square[1], square[2]);
     printf("+-----------+ \n| %c | %c | %c | \n", square[3], square[4], square[5]);
     printf("+-----------+ \n| %c | %c | %c | \n", square[6], square[7], square[8]);
@@ -234,7 +217,7 @@ void display()
 
 void check(int box)
 {
-    if(square[box] == '_')
+    if(square[box] == '-')
     {
         square[box] = 'O';
         prgrmTurn = -1;
@@ -245,31 +228,62 @@ void check(int box)
         input[0] = '0';
     }
 
-    if(
-    checkWin(square[0], square[1], square[2]) ||
-    checkWin(square[3], square[4], square[5]) ||
-    checkWin(square[6], square[7], square[8]) ||
-
-    checkWin(square[0], square[3], square[6]) ||
-    checkWin(square[1], square[4], square[7]) ||
-    checkWin(square[2], square[5], square[8]) ||
-
-    checkWin(square[0], square[4], square[8]) ||
-    checkWin(square[6], square[4], square[2]))
-    {
-        p2Win = 1;
-    }
-}
-
-int checkWin(char t1, char t2, char t3)
-{
-    if(t1 != 'O' || t2 != 'O' || t3 != 'O')
-    {
-        return -1;
-    }
-
-    if(t1 == t2 && t1 == t3 && t2 == t3)
-    {
-        return 1;
+    if (square[1] == square[2] && square[2] == square[3]) {
+        if(square[1] != 'O' || square[2] != 'O' || square[3] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }
+    } else if (square[4] == square[5] && square[5] == square[6]) {
+        if(square[4] != 'O' || square[5] != 'O' || square[6] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        } 
+    } else if (square[7] == square[8] && square[8] == square[9]) {
+        if(square[7] != 'O' || square[8] != 'O' || square[9] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }
+    } else if (square[1] == square[4] && square[4] == square[7]) {
+        if(square[1] != 'O' || square[4] != 'O' || square[7] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }  
+    } else if (square[2] == square[5] && square[5] == square[8]) {
+        if(square[2] != 'O' || square[5] != 'O' || square[8] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }  
+    } else if (square[3] == square[6] && square[6] == square[9]) {
+        if(square[3] != 'O' || square[6] != 'O' || square[9] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }
+    } else if (square[1] == square[5] && square[5] == square[9]) {
+        if(square[1] != 'O' || square[5] != 'O' || square[9] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }
+        
+    } else if (square[3] == square[5] && square[5] == square[7]) {
+        if(square[3] != 'O' || square[5] != 'O' || square[7] != 'O')
+        {
+            p2Win = -1;
+        } else {
+            p2Win = 1;
+        }
     }
 }
