@@ -13,7 +13,6 @@ volatile MQTTClient_deliveryToken deliveredtoken;
 
 void display();
 void check(int square);
-int checkWin(char square1, char square2, char square3);
 
 char input[10]; 
 int prgrmTurn = -1;
@@ -204,7 +203,7 @@ int main(int argc, char* argv[])
     } while((input[0] != 'Q' && input[0] != 'q'));
     MQTTClient_disconnect(client, 10000);
     MQTTClient_destroy(&client);
-    return rc;
+    return EXIT_SUCCESS;
 }
 
 void display()

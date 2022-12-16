@@ -1,11 +1,21 @@
 CC = gcc
 MAIN = src/tictactoe.c
 
+ifeq ($(OS), Windows_NT)
+		DELETE = DELETE
+		EXT =.exe
+else 
+	UNAME_S:=$(shell uname -s)
+	ifeq ($(UNAME_S), Darwin)
+		DELETE = rm -f
+		EXT=.out
+	endif
+endif 
+
 all: program
 
-program: src
+program: $(CC) -o bin/program$(EXT) $(MAIN) -lpaho-pqtt3c
 
-	$(CC) -Iinclude src/*.c -lpaho-pqtt3c -o bin/program
+run: bin/program$(EXT)
+	bin/program$(EXT)
 
-run: program
-	./program
